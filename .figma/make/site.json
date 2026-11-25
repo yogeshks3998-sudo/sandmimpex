@@ -1,0 +1,10 @@
+{
+  "title": "S&M IMPEX | Premium Fragrance & Artisan Essentials",
+  "description": "Experience premium aromatic agarbattis, sacred sambrani cups, handmade artificial flowers & garlands, bridal hair accessories, and Thanjore paintings from S&M IMPEX.",
+  "icons": {
+    "icon": "/images/sandm/logo.png"
+  },
+  "openGraph": {
+    "image": "/images/sandm/banners/hero_agarbatti.png"
+  }
+}
