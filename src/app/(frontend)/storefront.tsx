@@ -1639,9 +1639,16 @@ export default function Storefront({ data, view, product, article }: StoreProps)
   }
 
   const catOf = (p: ProductWithExtras) => typeof p.category === 'object' ? p.category : null
-  const ALLOWED_CATEGORIES = ['agarbatties', 'sambranies', 'handmade-flowers', 'candles', 'sambar-powder']
+  // Active categories: Agarbatties, Sambranies, Handmade Flowers
+  // Temporarily hidden for now (will be enabled in future): Candles, Sambar Powder
+  const ALLOWED_CATEGORIES = ['agarbatties', 'sambranies', 'handmade-flowers']
   const categories = data.categories.filter(c => ALLOWED_CATEGORIES.includes(c.slug))
-  const filtered = data.products.filter(p => (category === 'all' || catOf(p)?.slug === category) && `${p.name} ${p.description} ${p.fragrance || ''} ${p.colour || ''}`.toLowerCase().includes(search.toLowerCase()) && p.price <= price && (!scent || p.fragrance === scent || p.colour === scent) && (!available || (p.stock || 0) > 0)).sort((a, b) => sort === 'low' ? a.price - b.price : sort === 'high' ? b.price - a.price : sort === 'latest' ? b.createdAt.localeCompare(a.createdAt) : 0)
+  const isAllowedProduct = (p: ProductWithExtras) => {
+    const slug = catOf(p)?.slug
+    return Boolean(slug && ALLOWED_CATEGORIES.includes(slug))
+  }
+  const products = data.products.filter(isAllowedProduct)
+  const filtered = products.filter(p => (category === 'all' || catOf(p)?.slug === category) && `${p.name} ${p.description} ${p.fragrance || ''} ${p.colour || ''}`.toLowerCase().includes(search.toLowerCase()) && p.price <= price && (!scent || p.fragrance === scent || p.colour === scent) && (!available || (p.stock || 0) > 0)).sort((a, b) => sort === 'low' ? a.price - b.price : sort === 'high' ? b.price - a.price : sort === 'latest' ? b.createdAt.localeCompare(a.createdAt) : 0)
   const updateCartQty = (index: number, newQty: number) => {
     saveCart(cart.map((c, i) => i === index ? { ...c, qty: newQty } : c))
   }
@@ -2123,12 +2130,12 @@ export default function Storefront({ data, view, product, article }: StoreProps)
                   className="flex items-center justify-between rounded-sm px-3 py-2 text-sm text-[#4c3725] hover:bg-[#efe7d8] hover:text-[#9b452f] transition"
                 >
                   <span>{c.name}</span>
-                  <span className="text-xs text-[#8c7b69]">({data.products.filter(p => catOf(p)?.slug === c.slug).length})</span>
+                  <span className="text-xs text-[#8c7b69]">({products.filter(p => catOf(p)?.slug === c.slug).length})</span>
                 </Link>
               ))}
               <div className="mt-2 border-t border-[#e8dfcf] pt-2">
                 <Link href="/shop" className="block rounded-sm px-3 py-1.5 text-xs font-medium text-[#9b452f] hover:bg-[#efe7d8]">
-                  View All Products ({data.products.length}) →
+                  View All Products ({products.length}) →
                 </Link>
               </div>
             </div>
@@ -2194,16 +2201,16 @@ export default function Storefront({ data, view, product, article }: StoreProps)
               </div>
             </section>
 
-            {/* 3. Categories Grid: Exactly the 5 Categories */}
+            {/* 3. Categories Grid: Active Categories */}
             <section className={`${wrap} py-16`}>
               <div className="mb-10 text-center">
                 <p className="mb-2 text-xs tracking-[.2em] text-[#995039]">LITTLE THINGS. BEAUTIFUL LIVING.</p>
                 <h2 className="font-serif text-4xl">Find your everyday favourites</h2>
-                <p className="mt-3 text-sm text-[#756757]">From sacred rituals to welcoming spaces, discover our 5 authentic artisanal collections.</p>
+                <p className="mt-3 text-sm text-[#756757]">From sacred rituals to welcoming spaces, discover our authentic artisanal collections.</p>
               </div>
-              <div className="grid grid-cols-2 gap-6 md:grid-cols-5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
                 {categories.map(c => {
-                  const count = data.products.filter(p => catOf(p)?.slug === c.slug).length
+                  const count = products.filter(p => catOf(p)?.slug === c.slug).length
                   return (
                     <Link key={c.id} href={`/shop?category=${c.slug}`} className="group text-center">
                       <div className="relative overflow-hidden rounded-t-[48%] rounded-b-[3px] shadow-xs">
@@ -2223,7 +2230,7 @@ export default function Storefront({ data, view, product, article }: StoreProps)
             {/* 4. Loved this week highlights */}
             <section className={`${wrap} pb-16`}>
               <Heading eyebrow="LOVED THIS WEEK" title="Small joys. Special finds." href="/shop" link="Shop this week’s highlights" />
-              {grid(data.products.filter(p => p.badge).slice(0, 4))}
+              {grid(products.filter(p => p.badge).slice(0, 4))}
             </section>
 
             {/* 5. Agarbatties Feature Split Section */}
@@ -2287,7 +2294,7 @@ export default function Storefront({ data, view, product, article }: StoreProps)
                 <label className="mt-4 block text-sm font-medium">
                   Category
                   <select aria-label="Filter category" value={category} onChange={e => { setCategory(e.target.value); setScent(''); setPage(1) }} className="mt-2 min-h-11 w-full border border-[#d9cdbb] bg-white px-2 text-sm">
-                    <option value="all">All collections ({data.products.length})</option>
+                    <option value="all">All collections ({products.length})</option>
                     {categories.map(c => <option key={c.id} value={c.slug}>{c.name}</option>)}
                   </select>
                 </label>
@@ -2299,7 +2306,7 @@ export default function Storefront({ data, view, product, article }: StoreProps)
                   {category === 'handmade-flowers' ? 'Colour' : 'Fragrance / colour'}
                   <select value={scent} onChange={e => { setScent(e.target.value); setPage(1) }} className="mt-2 min-h-11 w-full border border-[#d9cdbb] bg-white px-2 text-sm">
                     <option value="">All options</option>
-                    {Array.from(new Set(data.products.filter(p => category === 'all' || catOf(p)?.slug === category).map(p => p.fragrance || p.colour).filter(Boolean))).map(s => <option key={s} value={s || ''}>{s}</option>)}
+                    {Array.from(new Set(products.filter(p => category === 'all' || catOf(p)?.slug === category).map(p => p.fragrance || p.colour).filter(Boolean))).map(s => <option key={s} value={s || ''}>{s}</option>)}
                   </select>
                 </label>
                 <label className="mt-5 flex min-h-11 items-center gap-3 text-sm">
@@ -2315,7 +2322,7 @@ export default function Storefront({ data, view, product, article }: StoreProps)
                     onClick={() => { setCategory('all'); setPage(1) }}
                     className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ${category === 'all' ? 'bg-[#9b452f] text-white shadow-2xs' : 'border border-[#d9cdbb] bg-white text-[#544332] hover:border-[#9b452f]'}`}
                   >
-                    All Collections ({data.products.length})
+                    All Collections ({products.length})
                   </button>
                   {categories.map(c => (
                     <button
@@ -2323,7 +2330,7 @@ export default function Storefront({ data, view, product, article }: StoreProps)
                       onClick={() => { setCategory(c.slug); setPage(1) }}
                       className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ${category === c.slug ? 'bg-[#9b452f] text-white shadow-2xs' : 'border border-[#d9cdbb] bg-white text-[#544332] hover:border-[#9b452f]'}`}
                     >
-                      {c.name} ({data.products.filter(p => catOf(p)?.slug === c.slug).length})
+                      {c.name} ({products.filter(p => catOf(p)?.slug === c.slug).length})
                     </button>
                   ))}
                 </div>
@@ -2535,7 +2542,7 @@ export default function Storefront({ data, view, product, article }: StoreProps)
                 </div>
               </div>
               <div className="max-h-[50vh] overflow-auto divide-y divide-[#e0d6c5]">
-                {data.products.filter(p => `${p.name} ${p.description}`.toLowerCase().includes(search.toLowerCase())).slice(0, 8).map(p => (
+                {products.filter(p => `${p.name} ${p.description}`.toLowerCase().includes(search.toLowerCase())).slice(0, 8).map(p => (
                   <Link key={p.id} href={`/products/${p.slug}`} onClick={() => setModal('')} className="flex min-h-14 items-center justify-between py-2 text-sm hover:text-[#9b452f] transition">
                     <span className="font-medium">{p.name}</span>
                     <span className="font-semibold">{money(p.price)}</span>
