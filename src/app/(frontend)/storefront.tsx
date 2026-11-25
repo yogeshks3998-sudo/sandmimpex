@@ -2426,10 +2426,18 @@ export default function Storefront({ data, view, product, article }: StoreProps)
         {view === 'checkout' && <CheckoutView data={data} cart={cart} total={total} saveCart={saveCart} />}
 
         {/* CHECKOUT CONFIRMATION VIEW */}
-        {view === 'checkout-confirmation' && <ConfirmationView data={data} />}
+        {view === 'checkout-confirmation' && (
+          <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center text-sm text-[#76654d]">Loading confirmation...</div>}>
+            <ConfirmationView data={data} />
+          </Suspense>
+        )}
 
         {/* ORDER TRACKING VIEW */}
-        {view === 'track' && <TrackOrderView data={data} />}
+        {view === 'track' && (
+          <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center text-sm text-[#76654d]">Loading tracker...</div>}>
+            <TrackOrderView data={data} />
+          </Suspense>
+        )}
       </main>
 
       {/* FOOTER */}

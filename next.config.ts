@@ -6,6 +6,10 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 
+if (!process.env.FIGMA_EID) {
+  process.env.FIGMA_EID = 'sandm-impex-store'
+}
+
 const makePublicPreviewURL = (() => {
   const publicURL = process.env.FIGMA_PUBLIC_URL
   if (!publicURL) return undefined
@@ -61,6 +65,7 @@ const nextConfig: NextConfig = {
   },
   env: {
     NEXT_PUBLIC_SITE_URL: process.env.FIGMA_PUBLIC_URL || 'http://localhost:3000',
+    FIGMA_EID: process.env.FIGMA_EID || 'sandm-impex-store',
     // NOTE: Do not add FIGMA_OAUTH_CLIENT_SECRET, FIGMA_CONTENT_API_ACCESS_KEY,
     // or any other credential here. Values placed in `env` are inlined into
     // the JavaScript bundle by Next.js at build time and become readable by
